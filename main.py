@@ -47,9 +47,10 @@ def split_audio_by_silence(
     else:
         end_ms = min(to_ms(*end_timestamp), len(audio))
 
-    print(
-        f"Loaded audio file: '{audio_file}' ({format_timestamp(*to_hms(len(audio)))} h:m:s long)"
-    )
+    if verbose:
+        print(
+            f"Loaded audio file: '{audio_file}' ({format_timestamp(*to_hms(len(audio)))} h:m:s long)"
+        )
 
     if start_ms >= len(audio):
         start_mmss = format_timestamp(*to_hms(start_ms))
@@ -64,14 +65,16 @@ def split_audio_by_silence(
     # Slice the audio to the desired range
     audio_segment = audio[start_ms:end_ms]
 
-    print("Detecting silence periods...")
+    if verbose:
+        print("Detecting silence periods...")
 
     # Split the audio into chunks based on silence
     chunk_timestamps = detect_nonsilent(
         audio_segment, min_silence_len=min_silence_len, silence_thresh=silence_thresh
     )
 
-    print("Done!")
+    if verbose:
+        print("Done!")
 
     # Create the output folder if it doesn't exist
     os.makedirs(output_folder, exist_ok=True)
@@ -157,4 +160,6 @@ if __name__ == "__main__":
         output_folder=args.output_folder,
         silence_thresh=args.silence_thresh,
         min_silence_len=args.min_silence_len,
+        keep_silence_ms=args.keep_silence,
+        verbose=args.verbose,
     )
