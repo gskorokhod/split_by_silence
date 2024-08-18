@@ -26,6 +26,17 @@ def format_timestamp(hh, mm, ss):
     return f"{hh:02}:{mm:02}:{ss:02}"
 
 
+def get_adjusted_chunk(chunk_start_ms, chunk_end_ms, padding_ms, max_ms):
+    adj_start_ms = max(0, chunk_start_ms - padding_ms)
+    adj_end_ms = min(max_ms, chunk_end_ms + padding_ms)
+
+    return (adj_start_ms, adj_end_ms)
+
+
+def format_ms(ms):
+    return format_timestamp(*to_hms(ms))
+
+
 def split_audio_by_silence(
     audio_file,
     output_folder,
@@ -34,6 +45,7 @@ def split_audio_by_silence(
     silence_thresh=-40,
     min_silence_len=500,
     keep_silence_ms=100,
+    min_chunk_duration_ms=0,
     verbose=False,
 ):
     # Load the audio file
@@ -76,22 +88,32 @@ def split_audio_by_silence(
     if verbose:
         print("Done!")
 
+    # Filter out chunks that are too small (accounting for the silence period on either side)
+    filtered_chunk_timestamps = []
+    for chunk_start_ms, chunk_end_ms in chunk_timestamps:
+        adj_start, adj_end = get_adjusted_chunk(
+            chunk_start_ms, chunk_end_ms, keep_silence_ms, len(audio)
+        )
+        duration = adj_end - adj_start
+
+        if duration >= min_chunk_duration_ms:
+            filtered_chunk_timestamps.append((adj_start, adj_end))
+        elif verbose:
+            print(
+                f"Skipping chunk [{format_ms(adj_start + start_ms)} - {format_ms(adj_end + start_ms)}] as it is too short ({duration}ms < {min_chunk_duration_ms}ms)"
+            )
+
     # Create the output folder if it doesn't exist
     os.makedirs(output_folder, exist_ok=True)
 
     for i, (chunk_start_ms, chunk_end_ms) in enumerate(chunk_timestamps):
-        chunk_start_ms = max(0, chunk_start_ms - keep_silence_ms)
-        chunk_end_ms = min(len(audio_segment), chunk_end_ms + keep_silence_ms)
+        adj_start, adj_end = get_adjusted_chunk(
+            chunk_start_ms, chunk_end_ms, keep_silence_ms, len(audio)
+        )
 
-        chunk = audio_segment[chunk_start_ms:chunk_end_ms]
+        chunk = audio_segment[adj_start:adj_end]
 
-        start_h, start_m, start_s = to_hms(chunk_start_ms + start_ms)
-        end_h, end_m, end_s = to_hms(chunk_end_ms + start_ms)
-
-        start_ts = format_timestamp(start_h, start_m, start_s)
-        end_ts = format_timestamp(end_h, end_m, end_s)
-
-        filename = f"S{i + 1}_{start_ts}-{end_ts}.mp3"
+        filename = f"S{i + 1}_{format_ms(adj_start + start_ms)}-{format_ms(adj_end + start_ms)}.mp3"
         filepath = os.path.join(output_folder, filename)
 
         chunk.export(filepath, format="mp3")
@@ -102,44 +124,56 @@ def split_audio_by_silence(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Split audio file into sentences based on silence."
+        description="Split audio file into sentences based on periods of silence."
     )
     parser.add_argument("audio_file", type=str, help="Path to the input audio file.")
     parser.add_argument(
         "output_folder", type=str, help="Folder to save the output audio chunks."
     )
     parser.add_argument(
+        "-s",
         "--start",
         type=str,
         default="00:00:00",
         help="Start timestamp in HH:MM:SS format (default: 00:00:00).",
     )
     parser.add_argument(
+        "-e",
         "--end",
         type=str,
         default="",
         help="End timestamp in HH:MM:SS format (default: up to the end of the file).",
     )
     parser.add_argument(
+        "-t",
         "--silence_thresh",
         type=int,
         default=-40,
         help="Silence threshold in dB (default: -40).",
     )
     parser.add_argument(
+        "-m",
         "--min_silence_len",
         type=int,
         default=500,
         help="Minimum silence length in ms (default: 500).",
     )
     parser.add_argument(
+        "-k",
         "--keep_silence",
         type=int,
         default=100,
         help="Duration of silence to keep at the start and end of each fragment in ms (default: 100)",
     )
     parser.add_argument(
-        "--verbose", action="store_true", help="Print extra information"
+        "-d",
+        "--min_chunk_duration",
+        type=int,
+        default=0,
+        help="Filter out chunks shorter than this value in ms (default: 0)",
+    )
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Print extra information"
     )
 
     args = parser.parse_args()
@@ -161,5 +195,6 @@ if __name__ == "__main__":
         silence_thresh=args.silence_thresh,
         min_silence_len=args.min_silence_len,
         keep_silence_ms=args.keep_silence,
+        min_chunk_duration_ms=args.min_chunk_duration,
         verbose=args.verbose,
     )
