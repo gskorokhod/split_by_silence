@@ -23,13 +23,15 @@ main.py [-h] [--start START] [--end END] [--silence_thresh SILENCE_THRESH] [--mi
 Split audio file into sentences based on silence.
 
 positional arguments:
-  `audio_file`            Path to the input audio file.
-  `output_folder`         Folder to save the output audio chunks.
+
+  - `audio_file`            Path to the input audio file.
+  - `output_folder`         Folder to save the output audio chunks.
 
 options:
-  `-h`, `--help`          Show a help message and exit
-  `--start START`         Start timestamp in HH:MM:SS format (default: 00:00:00).
-  `--end END`             End timestamp in HH:MM:SS format (default: up to the end of the file).
-  `--silence_thresh`      Silence threshold in dB (default: -40).
-  `--min_silence_len`     Minimum silence length in ms (default: 500).
-  `--keep_silence`        Duration of silence to keep at the start and end of each fragment in ms (default: 100)
+
+  - `-h`, `--help`          Show a help message and exit
+  - `--start START`         Start timestamp in HH:MM:SS format (default: 00:00:00).
+  - `--end END`             End timestamp in HH:MM:SS format (default: up to the end of the file).
+  - `--silence_thresh`      Silence threshold in dB (default: -40).
+  - `--min_silence_len`     Minimum silence length in ms (default: 500).
+  - `--keep_silence`        Duration of silence to keep at the start and end of each fragment in ms (default: 100)
