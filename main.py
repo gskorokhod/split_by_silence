@@ -47,7 +47,7 @@ def split_audio_by_silence(
     else:
         end_ms = min(to_ms(*end_timestamp), len(audio))
 
-    if start_ms < len(audio):
+    if start_ms >= len(audio):
         start_mmss = format_timestamp(*to_hms(start_ms))
         audio_len = format_timestamp(*to_hms(len(audio)))
 
