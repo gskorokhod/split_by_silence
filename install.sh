@@ -13,7 +13,7 @@ cat <<EOF >split_by_silence
 
 PROJECT_DIR=$CURRENT_DIR
 
-\$PROJECT_DIR/venv/bin/python3 \$PROJECT_DIR/main.py
+\$PROJECT_DIR/venv/bin/python3 \$PROJECT_DIR/main.py "\$@"
 EOF
 
 # Move the executable file to the user's local bin
