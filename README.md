@@ -30,8 +30,9 @@ positional arguments:
 options:
 
   - `-h`, `--help`          Show a help message and exit
-  - `--start START`         Start timestamp in HH:MM:SS format (default: 00:00:00).
-  - `--end END`             End timestamp in HH:MM:SS format (default: up to the end of the file).
-  - `--silence_thresh`      Silence threshold in dB (default: -40).
-  - `--min_silence_len`     Minimum silence length in ms (default: 500).
-  - `--keep_silence`        Duration of silence to keep at the start and end of each fragment in ms (default: 100)
+  - `-s`, `--start START`         Start timestamp in HH:MM:SS format (default: 00:00:00).
+  - `-e`, `--end END`             End timestamp in HH:MM:SS format (default: up to the end of the file).
+  - `-t`, `--silence_thresh`      Silence threshold in dB (default: -40).
+  - `-m`, `--min_silence_len`     Minimum silence length in ms (default: 500).
+  - `-k`, `--keep_silence`        Duration of silence to keep at the start and end of each fragment in ms (default: 100)
+  - `-d`, `--min_chunk_duration`  Filter out chunks shorter than this value in ms (default: 0)
